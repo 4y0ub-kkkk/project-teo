@@ -1,0 +1,1326 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>RSA Chiffrement/Déchiffrement - Guide Complet</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap');
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Montserrat', sans-serif;
+      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+      color: #f1f1f1;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .page {
+      display: none;
+      width: 100%;
+      max-width: 900px;
+      background: rgba(15, 23, 42, 0.9);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 40px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      animation: fadeIn 0.6s cubic-bezier(0.39, 0.575, 0.565, 1) both;
+      margin: 20px 0;
+    }
+
+    .active {
+      display: block;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 35px;
+      color: #fff;
+      font-size: 2.2rem;
+      font-weight: 600;
+      position: relative;
+      padding-bottom: 15px;
+    }
+
+    h1::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80px;
+      height: 3px;
+      background: linear-gradient(90deg, #f59e0b, #ef4444);
+      border-radius: 3px;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 16px 20px;
+      margin: 12px 0 30px;
+      border-radius: 12px;
+      border: none;
+      font-size: 1rem;
+      background: rgba(255, 255, 255, 0.05);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      transition: all 0.3s ease;
+    }
+
+    input:focus, textarea:focus {
+      outline: none;
+      border-color: #f59e0b;
+      box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2);
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    input::placeholder, textarea::placeholder {
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    button {
+      width: 100%;
+      padding: 18px;
+      margin: 15px 0;
+      border-radius: 12px;
+      border: none;
+      font-size: 1.05rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.4s ease;
+      position: relative;
+      overflow: hidden;
+      color: #1e293b;
+      background: linear-gradient(45deg, #f59e0b, #f97316);
+      z-index: 1;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(245, 158, 11, 0.3);
+    }
+
+    button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(45deg, #f97316, #f59e0b);
+      z-index: -1;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+    }
+
+    button:hover::before {
+      opacity: 1;
+    }
+
+    .step-title {
+      font-weight: 500;
+      margin-top: 25px;
+      color: #f59e0b;
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+    }
+
+    .step-title i {
+      margin-right: 10px;
+      font-size: 1.2rem;
+    }
+
+    .result-container {
+      background: linear-gradient(135deg, rgba(15, 23, 42, 0.7), rgba(30, 41, 59, 0.7));
+      padding: 25px;
+      border-radius: 15px;
+      border-left: 4px solid #f59e0b;
+      margin: 30px 0;
+      box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .result-title {
+      font-weight: 600;
+      margin-bottom: 15px;
+      color: #f59e0b;
+    }
+
+    .result-content {
+      line-height: 1.7;
+      font-family: 'Courier New', monospace;
+      word-break: break-all;
+    }
+
+    .progress-container {
+      width: 100%;
+      height: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      margin: 30px 0;
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #f59e0b, #ef4444);
+      border-radius: 10px;
+      transition: width 0.8s cubic-bezier(0.65, 0, 0.35, 1);
+      width: 0;
+    }
+
+    .nav-dots {
+      display: flex;
+      justify-content: center;
+      margin-top: 30px;
+      gap: 12px;
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.2);
+      transition: all 0.3s ease;
+    }
+
+    .dot.active {
+      background: #f59e0b;
+      transform: scale(1.2);
+    }
+
+    .decryption-steps {
+      margin: 25px 0;
+    }
+
+    .step {
+      display: flex;
+      margin-bottom: 20px;
+      align-items: flex-start;
+    }
+
+    .step-number {
+      background: #f59e0b;
+      color: #1e293b;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-weight: bold;
+      margin-right: 15px;
+      flex-shrink: 0;
+    }
+
+    .step-content {
+      flex-grow: 1;
+    }
+
+    .step-formula {
+      font-family: 'Courier New', monospace;
+      background: rgba(245, 158, 11, 0.1);
+      padding: 10px 15px;
+      border-radius: 8px;
+      margin: 10px 0;
+      border-left: 3px solid #f59e0b;
+    }
+
+    .visualization {
+      display: flex;
+      justify-content: space-between;
+      margin: 25px 0;
+      flex-wrap: wrap;
+    }
+
+    .visual-box {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      padding: 15px;
+      width: 48%;
+      margin-bottom: 15px;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    .visual-title {
+      font-size: 0.9rem;
+      color: #f59e0b;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    .visual-value {
+      font-size: 1.2rem;
+      text-align: center;
+      font-weight: bold;
+      word-break: break-all;
+    }
+
+    .message-flow {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 30px 0;
+      position: relative;
+    }
+
+    .message-box {
+      background: rgba(245, 158, 11, 0.1);
+      border-radius: 10px;
+      padding: 15px;
+      width: 45%;
+      position: relative;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    .message-label {
+      position: absolute;
+      top: -12px;
+      left: 15px;
+      background: #0f172a;
+      padding: 0 10px;
+      font-size: 0.8rem;
+      color: #f59e0b;
+    }
+
+    .arrow {
+      font-size: 1.5rem;
+      color: #f59e0b;
+    }
+
+    .error-message {
+      color: #ef4444;
+      background: rgba(239, 68, 68, 0.1);
+      padding: 10px;
+      border-radius: 8px;
+      margin: 10px 0;
+      border-left: 3px solid #ef4444;
+      display: none;
+    }
+
+    /* New styles for explanations and diagrams */
+    .explanation {
+      background: rgba(30, 41, 59, 0.5);
+      border-radius: 12px;
+      padding: 20px;
+      margin: 20px 0;
+      border-left: 4px solid #3b82f6;
+    }
+
+    .explanation-title {
+      color: #3b82f6;
+      margin-bottom: 10px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+    }
+
+    .explanation-title i {
+      margin-right: 10px;
+    }
+
+    .explanation-content {
+      line-height: 1.6;
+    }
+
+    .algorithm-steps {
+      counter-reset: step-counter;
+      margin: 20px 0;
+    }
+
+    .algorithm-step {
+      position: relative;
+      padding-left: 40px;
+      margin-bottom: 15px;
+    }
+
+    .algorithm-step::before {
+      counter-increment: step-counter;
+      content: counter(step-counter);
+      position: absolute;
+      left: 0;
+      top: 0;
+      background: #f59e0b;
+      color: #1e293b;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-weight: bold;
+    }
+
+    .math-formula {
+      font-family: 'Courier New', monospace;
+      background: rgba(59, 130, 246, 0.1);
+      padding: 10px 15px;
+      border-radius: 8px;
+      margin: 10px 0;
+      border-left: 3px solid #3b82f6;
+      overflow-x: auto;
+    }
+
+    .rsa-diagram {
+      width: 100%;
+      max-width: 600px;
+      margin: 20px auto;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      padding: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .rsa-diagram-title {
+      text-align: center;
+      color: #f59e0b;
+      margin-bottom: 15px;
+      font-weight: 600;
+    }
+
+    .rsa-diagram-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .rsa-diagram-row {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      margin: 10px 0;
+    }
+
+    .rsa-diagram-box {
+      background: rgba(245, 158, 11, 0.1);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      border-radius: 8px;
+      padding: 10px;
+      width: 30%;
+      text-align: center;
+      position: relative;
+    }
+
+    .rsa-diagram-box-title {
+      font-size: 0.8rem;
+      color: #f59e0b;
+      margin-bottom: 5px;
+    }
+
+    .rsa-diagram-box-value {
+      font-weight: bold;
+      word-break: break-all;
+    }
+
+    .rsa-diagram-arrow {
+      margin: 0 10px;
+      color: #f59e0b;
+      display: flex;
+      align-items: center;
+    }
+
+    .example-box {
+      background: rgba(16, 185, 129, 0.1);
+      border-left: 4px solid #10b981;
+      border-radius: 8px;
+      padding: 15px;
+      margin: 20px 0;
+    }
+
+    .example-title {
+      color: #10b981;
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+
+    .example-content {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+
+    .example-item {
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .example-item-title {
+      font-size: 0.9rem;
+      color: #10b981;
+      margin-bottom: 5px;
+    }
+
+    .example-item-value {
+      font-family: 'Courier New', monospace;
+      background: rgba(16, 185, 129, 0.1);
+      padding: 8px;
+      border-radius: 4px;
+    }
+
+    .security-note {
+      background: rgba(239, 68, 68, 0.1);
+      border-left: 4px solid #ef4444;
+      border-radius: 8px;
+      padding: 15px;
+      margin: 20px 0;
+    }
+
+    .security-title {
+      color: #ef4444;
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+
+    .tab-container {
+      display: flex;
+      margin-bottom: 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .tab {
+      padding: 10px 20px;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      transition: all 0.3s ease;
+    }
+
+    .tab.active {
+      border-bottom: 3px solid #f59e0b;
+      color: #f59e0b;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 15px;
+      }
+      
+      .page {
+        padding: 30px 20px;
+      }
+      
+      h1 {
+        font-size: 1.8rem;
+      }
+      
+      .visual-box, .message-box {
+        width: 100%;
+      }
+      
+      .message-flow {
+        flex-direction: column;
+      }
+      
+      .arrow {
+        transform: rotate(90deg);
+        margin: 10px 0;
+      }
+      
+      .rsa-diagram-box {
+        width: 100%;
+        margin-bottom: 10px;
+      }
+      
+      .rsa-diagram-row {
+        flex-direction: column;
+      }
+      
+      .rsa-diagram-arrow {
+        transform: rotate(90deg);
+        margin: 10px 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="page1" class="page active">
+    <h1><i class="fas fa-lock"></i> Chiffrement RSA - Étape 1</h1>
+
+    <div class="explanation">
+      <div class="explanation-title">
+        <i class="fas fa-info-circle"></i> Qu'est-ce que RSA?
+      </div>
+      <div class="explanation-content">
+        RSA est un algorithme de cryptographie asymétrique inventé en 1977. Il utilise une paire de clés:
+        une <strong>clé publique</strong> pour le chiffrement et une <strong>clé privée</strong> pour le déchiffrement.
+        La sécurité de RSA repose sur la difficulté de factoriser de très grands nombres.
+      </div>
+    </div>
+
+    <div class="step-title">
+      <i class="fas fa-key"></i> Étape 1: Choix des nombres premiers
+    </div>
+
+    <div class="algorithm-steps">
+      <div class="algorithm-step">
+        Choisissez deux nombres premiers distincts <strong>p</strong> et <strong>q</strong>.
+        En pratique, ces nombres sont très grands (plusieurs centaines de chiffres).
+      </div>
+      <div class="algorithm-step">
+        Ces nombres resteront secrets et seront utilisés pour générer vos clés.
+      </div>
+    </div>
+
+    <div class="example-box">
+      <div class="example-title">
+        <i class="fas fa-lightbulb"></i> Exemple
+      </div>
+      <div class="example-content">
+        <div class="example-item">
+          <div class="example-item-title">p (nombre premier)</div>
+          <div class="example-item-value">61</div>
+        </div>
+        <div class="example-item">
+          <div class="example-item-title">q (nombre premier)</div>
+          <div class="example-item-value">53</div>
+        </div>
+      </div>
+    </div>
+
+    <input type="number" id="p" placeholder="Nombre premier p (ex: 61)" min="2" />
+    <input type="number" id="q" placeholder="Nombre premier q (ex: 53)" min="2" />
+
+    <div class="security-note">
+      <div class="security-title">
+        <i class="fas fa-shield-alt"></i> Note de sécurité
+      </div>
+      <p>Pour une sécurité réelle, utilisez des nombres premiers d'au moins 1024 bits (environ 300 chiffres). Cette démo utilise de petits nombres pour faciliter la compréhension.</p>
+    </div>
+
+    <button onclick="nextPage()">
+      <i class="fas fa-arrow-right"></i> Suivant
+    </button>
+
+    <div class="nav-dots">
+      <div class="dot active"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+    </div>
+  </div>
+
+  <div id="page2" class="page">
+    <h1><i class="fas fa-calculator"></i> RSA - Étape 2: Calcul des clés</h1>
+
+    <div class="tab-container">
+      <div class="tab active" onclick="switchTab('tab-calcul', this)">Calculs</div>
+      <div class="tab" onclick="switchTab('tab-explication', this)">Explications</div>
+      <div class="tab" onclick="switchTab('tab-diagram', this)">Diagramme</div>
+    </div>
+
+    <div id="tab-calcul" class="tab-content active">
+      <div class="step-title">
+        <i class="fas fa-times-circle"></i> Calcul de n = p * q
+      </div>
+      <div class="result-container">
+        <div id="n" class="result-content">n = </div>
+      </div>
+      
+      <div class="step-title">
+        <i class="fas fa-function"></i> Calcul de φ(n) = (p-1) * (q-1)
+      </div>
+      <div class="result-container">
+        <div id="phi" class="result-content">φ(n) = </div>
+      </div>
+      
+      <div class="step-title">
+        <i class="fas fa-exclamation-circle"></i> Choix de e (clé publique)
+      </div>
+      <div class="math-formula">
+        Conditions: 1 &lt; e &lt; φ(n) et pgcd(e, φ(n)) = 1
+      </div>
+      <input type="number" id="e" placeholder="Valeur de e (ex: 17)" min="2" />
+    </div>
+
+    <div id="tab-explication" class="tab-content">
+      <div class="explanation">
+        <div class="explanation-title">
+          <i class="fas fa-info-circle"></i> Explications mathématiques
+        </div>
+        <div class="explanation-content">
+          <p><strong>n = p × q</strong>: Le module de chiffrement, utilisé dans les deux clés.</p>
+          <p><strong>φ(n) = (p-1)(q-1)</strong>: L'indicatrice d'Euler, qui compte les nombres premiers avec n.</p>
+          <p><strong>e</strong>: L'exposant de chiffrement, doit être premier avec φ(n).</p>
+          <p>La clé publique est la paire <strong>(e, n)</strong>.</p>
+          <p>La clé privée <strong>d</strong> est calculée comme l'inverse modulaire de e modulo φ(n).</p>
+        </div>
+      </div>
+      
+      <div class="example-box">
+        <div class="example-title">
+          <i class="fas fa-lightbulb"></i> Exemple de calcul
+        </div>
+        <div class="example-content">
+          <div class="example-item">
+            <div class="example-item-title">p = 61, q = 53</div>
+            <div class="example-item-value">n = 61 × 53 = 3233</div>
+          </div>
+          <div class="example-item">
+            <div class="example-item-title">φ(n) = (61-1)(53-1)</div>
+            <div class="example-item-value">φ(n) = 60 × 52 = 3120</div>
+          </div>
+          <div class="example-item">
+            <div class="example-item-title">Choix de e premier avec 3120</div>
+            <div class="example-item-value">e = 17 (car pgcd(17,3120)=1)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="tab-diagram" class="tab-content">
+      <div class="rsa-diagram">
+        <div class="rsa-diagram-title">Génération des clés RSA</div>
+        <div class="rsa-diagram-content">
+          <div class="rsa-diagram-row">
+            <div class="rsa-diagram-box">
+              <div class="rsa-diagram-box-title">Nombres premiers</div>
+              <div class="rsa-diagram-box-value" id="diagram-p">p</div>
+              <div class="rsa-diagram-box-value" id="diagram-q">q</div>
+            </div>
+            <div class="rsa-diagram-arrow">
+              <i class="fas fa-arrow-right"></i>
+            </div>
+            <div class="rsa-diagram-box">
+              <div class="rsa-diagram-box-title">Calcul de n</div>
+              <div class="rsa-diagram-box-value">n = p × q</div>
+              <div class="rsa-diagram-box-value" id="diagram-n">n</div>
+            </div>
+          </div>
+          
+          <div class="rsa-diagram-row">
+            <div class="rsa-diagram-box">
+              <div class="rsa-diagram-box-title">Calcul de φ(n)</div>
+              <div class="rsa-diagram-box-value">φ(n) = (p-1)(q-1)</div>
+              <div class="rsa-diagram-box-value" id="diagram-phi">φ(n)</div>
+            </div>
+            <div class="rsa-diagram-arrow">
+              <i class="fas fa-arrow-right"></i>
+            </div>
+            <div class="rsa-diagram-box">
+              <div class="rsa-diagram-box-title">Choix de e</div>
+              <div class="rsa-diagram-box-value">1 &lt; e &lt; φ(n)</div>
+              <div class="rsa-diagram-box-value" id="diagram-e">e</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <button onclick="nextPage()">
+      <i class="fas fa-arrow-right"></i> Suivant
+    </button>
+
+    <div class="nav-dots">
+      <div class="dot"></div>
+      <div class="dot active"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+    </div>
+  </div>
+
+  <div id="page3" class="page">
+    <h1><i class="fas fa-lock-open"></i> RSA - Étape 3: Chiffrement</h1>
+
+    <div class="explanation">
+      <div class="explanation-title">
+        <i class="fas fa-info-circle"></i> Comment fonctionne le chiffrement RSA?
+      </div>
+      <div class="explanation-content">
+        <p>Le chiffrement transforme un message en texte chiffré à l'aide de la clé publique (e, n).</p>
+        <p>Pour chaque caractère M du message, on calcule C = M<sup>e</sup> mod n.</p>
+        <p>Le résultat est une suite de nombres qui constituent le message chiffré.</p>
+      </div>
+    </div>
+
+    <div class="step-title">
+      <i class="fas fa-envelope"></i> Message à Chiffrer
+    </div>
+
+    <div class="algorithm-steps">
+      <div class="algorithm-step">
+        Entrez le message que vous souhaitez chiffrer. Chaque caractère sera converti en son code ASCII.
+      </div>
+      <div class="algorithm-step">
+        Pour chaque code ASCII M, nous calculerons C = M<sup>e</sup> mod n.
+      </div>
+    </div>
+
+    <textarea id="message" rows="4" placeholder="Entrez votre message ici... (ex: Hello)"></textarea>
+
+    <div class="message-flow">
+      <div class="message-box">
+        <div class="message-label">Message clair</div>
+        <div id="plaintext-display" class="visual-value">Entrez un message...</div>
+      </div>
+      <div class="arrow">
+        <i class="fas fa-long-arrow-alt-right"></i>
+      </div>
+      <div class="message-box">
+        <div class="message-label">Message chiffré</div>
+        <div id="ciphertext-display" class="visual-value">...</div>
+      </div>
+    </div>
+
+    <button onclick="encryptMessage()">
+      <i class="fas fa-lock"></i> Chiffrer
+    </button>
+
+    <div class="progress-container">
+      <div id="progress-bar" class="progress-bar"></div>
+    </div>
+
+    <div class="nav-dots">
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot active"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+    </div>
+  </div>
+
+  <div id="page4" class="page">
+    <h1><i class="fas fa-check-circle"></i> RSA - Résultats</h1>
+
+    <div class="result-container">
+      <div class="result-title">Message Chiffré:</div>
+      <div id="result" class="result-content"></div>
+    </div>
+
+    <div class="result-container">
+      <div class="result-title">Clé Publique (e, n):</div>
+      <div id="public-key" class="result-content"></div>
+      <p class="explanation-content" style="margin-top: 10px;">
+        Cette clé peut être partagée publiquement pour permettre à d'autres de vous envoyer des messages chiffrés.
+      </p>
+    </div>
+
+    <div class="result-container">
+      <div class="result-title">Clé Privée (d, n):</div>
+      <div id="private-key" class="result-content"></div>
+      <p class="explanation-content" style="margin-top: 10px;">
+        Cette clé doit rester secrète! Elle permet de déchiffrer les messages reçus.
+      </p>
+    </div>
+
+    <div class="rsa-diagram">
+      <div class="rsa-diagram-title">Résumé du processus RSA</div>
+      <div class="rsa-diagram-content">
+        <div class="rsa-diagram-row">
+          <div class="rsa-diagram-box">
+            <div class="rsa-diagram-box-title">Message original</div>
+            <div class="rsa-diagram-box-value" id="summary-original">...</div>
+          </div>
+          <div class="rsa-diagram-arrow">
+            <i class="fas fa-arrow-right"></i>
+          </div>
+          <div class="rsa-diagram-box">
+            <div class="rsa-diagram-box-title">Chiffrement</div>
+            <div class="rsa-diagram-box-value">C = M<sup>e</sup> mod n</div>
+          </div>
+          <div class="rsa-diagram-arrow">
+            <i class="fas fa-arrow-right"></i>
+          </div>
+          <div class="rsa-diagram-box">
+            <div class="rsa-diagram-box-title">Message chiffré</div>
+            <div class="rsa-diagram-box-value" id="summary-encrypted">...</div>
+          </div>
+        </div>
+        
+        <div class="rsa-diagram-row">
+          <div class="rsa-diagram-box">
+            <div class="rsa-diagram-box-title">Message chiffré</div>
+            <div class="rsa-diagram-box-value" id="summary-encrypted2">...</div>
+          </div>
+          <div class="rsa-diagram-arrow">
+            <i class="fas fa-arrow-right"></i>
+          </div>
+          <div class="rsa-diagram-box">
+            <div class="rsa-diagram-box-title">Déchiffrement</div>
+            <div class="rsa-diagram-box-value">M = C<sup>d</sup> mod n</div>
+          </div>
+          <div class="rsa-diagram-arrow">
+            <i class="fas fa-arrow-right"></i>
+          </div>
+          <div class="rsa-diagram-box">
+            <div class="rsa-diagram-box-title">Message original</div>
+            <div class="rsa-diagram-box-value" id="summary-decrypted">...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <button onclick="nextPage()">
+      <i class="fas fa-unlock"></i> Déchiffrer un message
+    </button>
+
+    <button onclick="resetForm()">
+      <i class="fas fa-redo"></i> Recommencer
+    </button>
+
+    <div class="nav-dots">
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot active"></div>
+      <div class="dot"></div>
+    </div>
+  </div>
+
+  <div id="page5" class="page">
+    <h1><i class="fas fa-unlock-alt"></i> RSA - Étape 4: Déchiffrement</h1>
+
+    <div id="decryption-error" class="error-message"></div>
+
+    <div class="explanation">
+      <div class="explanation-title">
+        <i class="fas fa-info-circle"></i> Comment fonctionne le déchiffrement RSA?
+      </div>
+      <div class="explanation-content">
+        <p>Le déchiffrement utilise la clé privée (d, n) pour retrouver le message original.</p>
+        <p>Pour chaque nombre C du message chiffré, on calcule M = C<sup>d</sup> mod n.</p>
+        <p>Le résultat est converti en caractères pour reconstituer le message original.</p>
+      </div>
+    </div>
+
+    <div class="decryption-steps">
+      <div class="step">
+        <div class="step-number">1</div>
+        <div class="step-content">
+          <h3 class="step-title">Entrez la clé privée</h3>
+          <p>Utilisez la clé privée (d, n) générée précédemment:</p>
+          
+          <div class="visualization">
+            <div class="visual-box">
+              <div class="visual-title">Clé privée (d)</div>
+              <input type="number" id="d" placeholder="Valeur de d" class="visual-value" min="2" />
+            </div>
+            <div class="visual-box">
+              <div class="visual-title">Modulus (n)</div>
+              <input type="number" id="n-decrypt" placeholder="Valeur de n" class="visual-value" min="2" />
+            </div>
+          </div>
+          
+          <div class="step-formula">
+            Formule de déchiffrement: M = C<sup>d</sup> mod n
+          </div>
+        </div>
+      </div>
+      
+      <div class="step">
+        <div class="step-number">2</div>
+        <div class="step-content">
+          <h3 class="step-title">Message chiffré à déchiffrer</h3>
+          <p>Collez ici le message chiffré (série de nombres séparés par des espaces):</p>
+          <textarea id="encrypted-message" rows="4" placeholder="Entrez le message chiffré ici..."></textarea>
+        </div>
+      </div>
+      
+      <div class="message-flow">
+        <div class="message-box">
+          <div class="message-label">Message chiffré</div>
+          <div id="encrypted-display" class="visual-value">...</div>
+        </div>
+        <div class="arrow">
+          <i class="fas fa-long-arrow-alt-right"></i>
+        </div>
+        <div class="message-box">
+          <div class="message-label">Message clair</div>
+          <div id="decrypted-display" class="visual-value">...</div>
+        </div>
+      </div>
+    </div>
+
+    <button onclick="decryptMessage()">
+      <i class="fas fa-unlock"></i> Déchiffrer
+    </button>
+
+    <div class="progress-container">
+      <div id="decrypt-progress-bar" class="progress-bar"></div>
+    </div>
+
+    <div class="result-container">
+      <div class="result-title">Résultat du déchiffrement:</div>
+      <div id="decrypted-result" class="result-content"></div>
+    </div>
+
+    <div class="visualization">
+      <div class="visual-box">
+        <div class="visual-title">Temps de déchiffrement</div>
+        <div id="decrypt-time" class="visual-value">0 ms</div>
+      </div>
+      <div class="visual-box">
+        <div class="visual-title">Nombre de blocs</div>
+        <div id="blocks-count" class="visual-value">0</div>
+      </div>
+    </div>
+
+    <button onclick="goToPage(1)" class="secondary-btn">
+      <i class="fas fa-redo"></i> Nouveau chiffrement
+    </button>
+
+    <div class="nav-dots">
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot active"></div>
+    </div>
+  </div>
+
+  <script>
+    let p, q, e, d, n, phi, encryptedMessage, originalMessage;
+    let currentPage = 1;
+    let startTime, endTime;
+
+    // Update navigation dots
+    function updateNavDots() {
+      const dots = document.querySelectorAll('.dot');
+      dots.forEach((dot, index) => {
+        dot.classList.toggle('active', index === currentPage - 1);
+      });
+    }
+
+    // Switch between tabs
+    function switchTab(tabId, tabElement) {
+      const tabs = document.querySelectorAll('.tab');
+      tabs.forEach(tab => tab.classList.remove('active'));
+      tabElement.classList.add('active');
+      
+      const tabContents = document.querySelectorAll('.tab-content');
+      tabContents.forEach(content => content.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active');
+    }
+
+    // Go to specific page
+    function goToPage(pageNumber) {
+      const pages = document.querySelectorAll('.page');
+      pages[currentPage - 1].classList.remove('active');
+      currentPage = pageNumber;
+      pages[currentPage - 1].classList.add('active');
+      updateNavDots();
+      
+      if (pageNumber === 5 && encryptedMessage) {
+        document.getElementById('encrypted-message').value = encryptedMessage;
+        document.getElementById('encrypted-display').innerText = 
+          encryptedMessage.split(' ').slice(0, 3).join(' ') + (encryptedMessage.split(' ').length > 3 ? '...' : '');
+        
+        if (d && n) {
+          document.getElementById('d').value = d;
+          document.getElementById('n-decrypt').value = n;
+        }
+      }
+      
+      // Update diagrams when going to page 4
+      if (pageNumber === 4 && originalMessage && encryptedMessage) {
+        document.getElementById('summary-original').innerText = 
+          originalMessage.length > 10 ? originalMessage.substring(0, 10) + '...' : originalMessage;
+        document.getElementById('summary-encrypted').innerText = 
+          encryptedMessage.split(' ').slice(0, 3).join(' ') + (encryptedMessage.split(' ').length > 3 ? '...' : '');
+        document.getElementById('summary-encrypted2').innerText = 
+          encryptedMessage.split(' ').slice(0, 3).join(' ') + (encryptedMessage.split(' ').length > 3 ? '...' : '');
+        document.getElementById('summary-decrypted').innerText = 
+          originalMessage.length > 10 ? originalMessage.substring(0, 10) + '...' : originalMessage;
+      }
+    }
+
+    // Go to next page
+    function nextPage() {
+      const pages = document.querySelectorAll('.page');
+      
+      if (currentPage === 1) {
+        p = parseInt(document.getElementById('p').value);
+        q = parseInt(document.getElementById('q').value);
+        
+        if (!p || !q || !isPrime(p) || !isPrime(q)) {
+          alert("Veuillez entrer deux nombres premiers valides (ex: 61 et 53)");
+          return;
+        }
+        
+        n = p * q;
+        phi = (p - 1) * (q - 1);
+        document.getElementById('n').innerText = 'n = ' + n;
+        document.getElementById('phi').innerText = 'φ(n) = ' + phi;
+        
+        // Update diagram values
+        document.getElementById('diagram-p').innerText = p;
+        document.getElementById('diagram-q').innerText = q;
+        document.getElementById('diagram-n').innerText = n;
+        document.getElementById('diagram-phi').innerText = phi;
+      } else if (currentPage === 2) {
+        e = parseInt(document.getElementById('e').value);
+        
+        if (!e || e <= 1 || e >= phi || gcd(e, phi) !== 1) {
+          alert("Veuillez entrer une valeur valide pour e (premier avec φ(n))");
+          return;
+        }
+        
+        d = modInverse(e, phi);
+        document.getElementById('diagram-e').innerText = e;
+      } else if (currentPage === 3) {
+        // Nothing special to do
+      } else if (currentPage === 4) {
+        // Nothing special to do
+      }
+      
+      pages[currentPage - 1].classList.remove('active');
+      currentPage++;
+      pages[currentPage - 1].classList.add('active');
+      updateNavDots();
+      
+      // Update plaintext display on page 3
+      if (currentPage === 3) {
+        const messageInput = document.getElementById('message');
+        messageInput.addEventListener('input', function() {
+          document.getElementById('plaintext-display').innerText = 
+            this.value.length > 20 ? this.value.substring(0, 20) + '...' : this.value || 'Entrez un message...';
+        });
+      }
+    }
+
+    // Encrypt message using RSA
+    function encryptMessage() {
+      const message = document.getElementById('message').value;
+      originalMessage = message;
+      
+      if (!message) {
+        alert("Veuillez entrer un message à chiffrer");
+        return;
+      }
+      
+      const progressBar = document.getElementById('progress-bar');
+      let progress = 0;
+      const interval = setInterval(() => {
+        progress += 5;
+        progressBar.style.width = progress + '%';
+        
+        if (progress >= 100) {
+          clearInterval(interval);
+          encryptedMessage = encryptRSA(message, e, n);
+          document.getElementById('result').innerText = encryptedMessage;
+          document.getElementById('public-key').innerText = `(${e}, ${n})`;
+          document.getElementById('private-key').innerText = `(${d}, ${n})`;
+          
+          // Update ciphertext display
+          document.getElementById('ciphertext-display').innerText = 
+            encryptedMessage.split(' ').slice(0, 3).join(' ') + (encryptedMessage.split(' ').length > 3 ? '...' : '');
+          
+          setTimeout(() => {
+            document.getElementById('page3').classList.remove('active');
+            document.getElementById('page4').classList.add('active');
+            updateNavDots();
+          }, 300);
+        }
+      }, 50);
+    }
+
+    // Decrypt message using RSA
+    function decryptMessage() {
+      const errorElement = document.getElementById('decryption-error');
+      errorElement.style.display = 'none';
+      
+      const encryptedMsg = document.getElementById('encrypted-message').value.trim();
+      const dValue = document.getElementById('d').value;
+      const nValue = document.getElementById('n-decrypt').value;
+      
+      if (!encryptedMsg || !dValue || !nValue) {
+        showError("Veuillez entrer toutes les valeurs nécessaires");
+        return;
+      }
+      
+      const d = BigInt(dValue);
+      const n = BigInt(nValue);
+      
+      if (d <= 0 || n <= 0) {
+        showError("Les valeurs de d et n doivent être positives");
+        return;
+      }
+      
+      const encryptedParts = encryptedMsg.split(/\s+/).filter(num => num !== '');
+      for (const num of encryptedParts) {
+        if (!/^\d+$/.test(num)) {
+          showError("Le message chiffré doit contenir uniquement des nombres séparés par des espaces");
+          return;
+        }
+      }
+      
+      document.getElementById('encrypted-display').innerText = 
+        encryptedParts.slice(0, 3).join(' ') + (encryptedParts.length > 3 ? '...' : '');
+      
+      startTime = performance.now();
+      
+      const progressBar = document.getElementById('decrypt-progress-bar');
+      let progress = 0;
+      const interval = setInterval(() => {
+        progress += 5;
+        progressBar.style.width = progress + '%';
+        
+        if (progress >= 100) {
+          clearInterval(interval);
+          try {
+            const decrypted = decryptRSA(encryptedParts, d, n);
+            
+            document.getElementById('decrypted-result').innerText = decrypted;
+            document.getElementById('decrypted-display').innerText = 
+              decrypted.length > 20 ? decrypted.substring(0, 20) + '...' : decrypted;
+            
+            endTime = performance.now();
+            document.getElementById('decrypt-time').innerText = 
+              Math.round(endTime - startTime) + ' ms';
+            
+            document.getElementById('blocks-count').innerText = 
+              encryptedParts.length;
+              
+          } catch (error) {
+            showError("Erreur lors du déchiffrement: " + error.message);
+          }
+        }
+      }, 50);
+    }
+
+    // Show error message
+    function showError(message) {
+      const errorElement = document.getElementById('decryption-error');
+      errorElement.innerText = message;
+      errorElement.style.display = 'block';
+    }
+
+    // RSA encryption function
+    function encryptRSA(message, e, n) {
+      let encrypted = '';
+      for (let i = 0; i < message.length; i++) {
+        let charCode = message.charCodeAt(i);
+        if (charCode < 0 || charCode > 1114111) {
+          charCode = 32; // Replace invalid characters with space
+        }
+        encrypted += modPow(BigInt(charCode), BigInt(e), BigInt(n)) + ' ';
+      }
+      return encrypted.trim();
+    }
+
+    // RSA decryption function
+    function decryptRSA(encryptedParts, d, n) {
+      let decrypted = '';
+      let invalidChars = 0;
+      
+      for (let i = 0; i < encryptedParts.length; i++) {
+        const num = BigInt(encryptedParts[i]);
+        const charCode = Number(modPow(num, d, n));
+        
+        if (charCode >= 32 && charCode <= 126) {
+          decrypted += String.fromCharCode(charCode);
+        } else {
+          invalidChars++;
+          console.warn(`Code de caractère non valide: ${charCode} à la position ${i}`);
+        }
+      }
+      
+      if (invalidChars > 0) {
+        console.warn(`${invalidChars} caractères non valides ignorés`);
+      }
+      
+      if (decrypted === '') {
+        throw new Error("Aucun caractère valide n'a pu être déchiffré. Vérifiez la clé et le message.");
+      }
+      
+      return decrypted;
+    }
+
+    // Modular exponentiation (base^exponent % modulus)
+    function modPow(base, exponent, modulus) {
+      base = base % modulus;
+      let result = 1n;
+      while (exponent > 0n) {
+        if (exponent % 2n === 1n) {
+          result = (result * base) % modulus;
+        }
+        base = (base * base) % modulus;
+        exponent = exponent / 2n;
+      }
+      return result;
+    }
+
+    // Reset the form
+    function resetForm() {
+      document.getElementById('p').value = '';
+      document.getElementById('q').value = '';
+      document.getElementById('e').value = '';
+      document.getElementById('message').value = '';
+      document.getElementById('result').innerText = '';
+      document.getElementById('public-key').innerText = '';
+      document.getElementById('private-key').innerText = '';
+      document.getElementById('progress-bar').style.width = '0%';
+      document.getElementById('plaintext-display').innerText = 'Entrez un message...';
+      document.getElementById('ciphertext-display').innerText = '...';
+      
+      const pages = document.querySelectorAll('.page');
+      pages.forEach(page => page.classList.remove('active'));
+      
+      currentPage = 1;
+      document.getElementById('page1').classList.add('active');
+      updateNavDots();
+    }
+
+    // Check if a number is prime
+    function isPrime(num) {
+      if (num <= 1) return false;
+      if (num === 2) return true;
+      if (num % 2 === 0) return false;
+      
+      for (let i = 3; i <= Math.sqrt(num); i += 2) {
+        if (num % i === 0) return false;
+      }
+      return true;
+    }
+
+    // Greatest common divisor
+    function gcd(a, b) {
+      return b === 0 ? a : gcd(b, a % b);
+    }
+
+    // Modular inverse
+    function modInverse(a, m) {
+      a = (a % m + m) % m;
+      for (let x = 1; x < m; x++) {
+        if ((a * x) % m === 1) {
+          return x;
+        }
+      }
+      return 1;
+    }
+
+    // Initialize
+    updateNavDots();
+  </script>
+</body>
+</html>
